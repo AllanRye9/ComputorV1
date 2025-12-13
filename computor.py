@@ -6,7 +6,7 @@ This program parses, simplifies, and displays polynomial equations.
 
 import sys
 import re
-from typing import Dict, List, Tuple
+from typing import Dict
 
 
 class PolynomialEquation:
@@ -55,7 +55,7 @@ class PolynomialEquation:
         
         # Find all terms (coefficient * X^power)
         # Pattern matches: optional sign, optional coefficient, optional X^power
-        pattern = r'([+-]?)(\d+\.?\d*)?(\*?[Xx])?(\^(\d+))?'
+        pattern = r'([+-]?)(\d*\.?\d+|\d+)?(\*?[Xx])?(\^(\d+))?'
         
         pos = 0
         while pos < len(side):
@@ -115,7 +115,7 @@ class PolynomialEquation:
             
             # Determine absolute coefficient value
             abs_coeff = abs(coeff)
-            is_integer = coeff == int(coeff)
+            is_integer = float(coeff).is_integer()
             coeff_display = str(int(abs_coeff)) if is_integer else str(abs_coeff)
             
             # Handle special case of coefficient = 1 or -1 for X terms
