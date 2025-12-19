@@ -7,3 +7,8 @@ For the roots of 2 , it is calculted using quadratic equation that generates val
 or downwards for negative value.
 
 The determinant of a quadratic equation is attained by finding the highest value of exponent usually got by arrangement of exponents in descending order and the maximium value selected.
+
+Key terms used;
+exponents, determinant, constant or coefficient, variable.
+**NB: ** Polynomials can only have positive exponents and maximium of 2 roots for upward and downwards parabola plotting on the graph.
+Thereby allowing the use of quadratic equation.
