@@ -10,7 +10,7 @@ $(NAME):
 	chmod +x ./computor
 
 clean:
-	rm -f $(NAME)
+	rm -f $(NAME) && rm -rf $(NAME)V1
 
 fclean: clean
 	rm -rf node_modules
