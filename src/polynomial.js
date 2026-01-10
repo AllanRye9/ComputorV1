@@ -1,17 +1,19 @@
-class Polynomial {
-    polyExprR = [];
-    polyExprL = [];
+const {parse, parseSide } = require('./parse.js');
 
-    constructor(exprObjR, exprObjL) {
-        this.polyExprR = exprObjR || [];
-        this.polyExprL = exprObjL || [];
-    }
+let formula = process.argv.slice(2).join("").toUpperCase().split(" ").join("").split("=");
+// parsing is meant to check for invalid inputs
+parse(formula);
 
-    simplifyEquation(side) {
-        if (!side || !Array.isArray(side)) return [];
-        
+const poly = {
+    simplifyEquation: (side) => {
+        if (!side || !Array.isArray(side)) return ("Not array or invalid input");
         return side
             .reduce((acc, [coeff, degree]) => {
+                if (degree < 0 || !Number.isInteger(degree) || 
+                (!Number.isInteger(coeff) && !parseFloat(coeff))) {
+                    console.log("Error: Invalid degree/coeff ");
+                    process.exit(0);
+                }
                 if (coeff == null || degree == null) return acc;
                 acc[degree] = (acc[degree] ?? 0) + coeff;
                 return acc;
@@ -19,142 +21,62 @@ class Polynomial {
             .map((coeff, degree) => coeff != null ? [coeff, degree] : null)
             .filter(Boolean);
     }
+}
 
-    // Should be called to prepare the polynomial
-    reduce() {
-        this.polyExprL = this.simplifyEquation(this.polyExprL);
-        this.polyExprR = this.simplifyEquation(this.polyExprR);
+const polyExpr = () => {
+    // poly is meant to simplify the equation and solve it
+    let Rside = poly.simplifyEquation(parseSide(formula[1]));
+    let Lside = poly.simplifyEquation(parseSide(formula[0]));
 
-        this.polyExprR.forEach((elem) => {
-            if (elem[0] === 0) return;
-            let found = this.polyExprL.findIndex(item => item[1] === elem[1]);
-            if (found < 0)
-                this.polyExprL.push([-elem[0], elem[1]]);
-            else
-                this.polyExprL[found][0] -= elem[0];
-        });
-        
-        this.polyExprL = this.polyExprL
-            .filter(elem => elem[0] !== 0)
-            .sort((a, b) => b[1] - a[1]); // Sort by degree descending
-    }
+    // for debugging
+    console.log(Rside);
+    console.log(Lside);
 
-    stringifyEquation(pole) {
-        if (!pole || pole.length === 0)
-            return "0 * X^0";
+    Rside.forEach(
+        (val) => {
+            if (val[0] === 0) return;
+            pos = Lside.findIndex((item) => { return item[1] === val[1]; });
+            if (pos < 0) 
+                Lside.push([-val[0], val[1]]);
+            else 
+                Lside[pos][0] -= val[0];
+        }
+    );
 
-        let str = "";
-        pole.forEach((elem, index) => {
-            const coeff = elem[0];
-            const degree = elem[1];
-            
-            if (index > 0) {
-                str += coeff >= 0 ? " + " : " - ";
-            } else if (coeff < 0) {
-                str += "-";
-            }
-            
-            const absCoeff = Math.abs(coeff);
-            str += `${absCoeff} * X^${degree}`;
+    Lside = Lside.filter((item) => { return item[0] !== 0; });
+
+    const stringifyEquation = (side) => {
+        if (side.length === 0) return "0 * X^0";
+        let str = side[0][0] + " * X^" + side[0][1];
+        side.forEach((item, index) => {
+            if (index === 0) return;
+            str += item[0] < 0 ? ' - ' : ' + ';
+            str += item[0] < 0 ? -item[0] : item[0];
+            str += " * X^" + item[1];
         });
         return str;
     }
-
-    printEquation() {
-        // Reduce first to ensure we print the simplified form
-        this.reduce();
-        console.log("Reduced form: " + this.stringifyEquation(this.polyExprL) + " = 0");
-        console.log("Polynomial degree: " + this.getDegree());
+    console.log("Reduced form: " + stringifyEquation(Lside) + " = 0");
+    if(Lside.length === 0) {
+        console.log("Any real number is a solution.");
+        process.exit(0);
     }
 
-    // Step 2: Get polynomial degree
-    getDegree() {
-        if (this.polyExprL.length === 0) return 0;
-        return Math.max(...this.polyExprL.map(term => term[1]));
+    if (Lside[0][0] < 0 && Lside.length === 1 && Lside[0][1] === 0) {
+        console.log("No solution.");
+        process.exit(0);
     }
 
-    // Step 3: Discriminant calculation (for quadratic equations)
-    getDiscriminant() {
-        const degree = this.getDegree();
-        if (degree !== 2) {
-            throw new Error("Discriminant is only defined for quadratic equations (degree 2)");
-        }
-
-        // Find coefficients for ax² + bx + c = 0
-        let a = 0, b = 0, c = 0;
-        
-        this.polyExprL.forEach(([coeff, deg]) => {
-            if (deg === 2) a = coeff;
-            else if (deg === 1) b = coeff;
-            else if (deg === 0) c = coeff;
-        });
-
-        return b * b - 4 * a * c;
-    }
-
-    // Additional method to solve the polynomial
-    solve() {
-        const degree = this.getDegree();
-        
-        if (degree > 2) {
-            console.log("The polynomial degree is strictly greater than 2, I can't solve.");
-            return;
-        }
-        
-        if (degree === 0) {
-            // Constant polynomial
-            const constant = this.polyExprL[0] ? this.polyExprL[0][0] : 0;
-            if (constant === 0) {
-                console.log("All real numbers are solutions.");
-            } else {
-                console.log("No solution.");
-            }
-            return;
-        }
-        
-        if (degree === 1) {
-            // Linear equation: ax + b = 0
-            let a = 0, b = 0;
-            this.polyExprL.forEach(([coeff, deg]) => {
-                if (deg === 1) a = coeff;
-                else if (deg === 0) b = coeff;
-            });
-            
-            if (a === 0) {
-                console.log("No solution.");
-            } else {
-                const solution = -b / a;
-                console.log(`The solution is:\n${solution}`);
-            }
-            return;
-        }
-        
-        if (degree === 2) {
-            // Quadratic equation
-            let a = 0, b = 0, c = 0;
-            this.polyExprL.forEach(([coeff, deg]) => {
-                if (deg === 2) a = coeff;
-                else if (deg === 1) b = coeff;
-                else if (deg === 0) c = coeff;
-            });
-            
-            const discriminant = this.getDiscriminant();
-            
-            if (discriminant > 0) {
-                const sqrtD = Math.sqrt(discriminant);
-                const x1 = (-b - sqrtD) / (2 * a);
-                const x2 = (-b + sqrtD) / (2 * a);
-                console.log(`Discriminant is strictly positive, the two solutions are:\n${x1}\n${x2}`);
-            } else if (discriminant === 0) {
-                const x = -b / (2 * a);
-                console.log(`Discriminant is zero, the solution is:\n${x}`);
-            } else {
-                const realPart = -b / (2 * a);
-                const imaginaryPart = Math.sqrt(-discriminant) / (2 * a);
-                console.log(`Discriminant is strictly negative, the two complex solutions are:\n${realPart} + ${imaginaryPart}i\n${realPart} - ${imaginaryPart}i`);
-            }
-        }
+    let maxDegree = Lside.reduce( (value1, value2) => {
+            return value1[1] > value2[1] ? value1 : value2;
+    }, 0);
+    
+    console.log("Polynomial degree: " + maxDegree[1]);
+    
+    if (maxDegree[1] > 2) {
+        console.log("The polynomial degree is strictly greater than 2, I can't solve.");
+        process.exit(0);
     }
 }
 
-module.exports = { Polynomial };
+module.exports = { polyExpr };
