@@ -19,11 +19,10 @@ const callFunc = (index, value) => {
     }
 }
 
-const hasInvalidChars = (str) => /[^\d+\-Xx\^\*= ]/.test(str);
+const hasInvalidChars = (str) => /[^\d+\-Xx\^\*=\. ]/.test(str);
 
 const parseSide = (side) => {
     let value = hasInvalidChars(side) ? (console.log("Error: Invalid characters in equation"), process.exit(0)) : side;
-
     return value.split('-').map((item, index) => {
         return index > 0 ? '-' + item : item;
     }).filter((item) => { return item !== ""; }).map(
