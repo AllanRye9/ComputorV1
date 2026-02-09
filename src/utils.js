@@ -1,42 +1,85 @@
-const abs = (a) => {
-    return a < 0 ? -a : a;
-}
+/**
+ * Mathematical Utility Functions
+ */
 
-const mySQRT = (a) => {
-    let eps = 0.000001;
-    let pred = a / 2;
-
-    while (abs(pred * pred - a) > eps) {
-        pred = (pred + a / pred) / 2;
-    }
-
-    let i = pred | 0;
-    if ((i + 1) * (i + 1) === a) return i + 1;
-    if (i * i === a) return i;
-
-    return pred;
+/**
+ * Returns the absolute value of a number
+ * @param {number} value - Input number
+ * @returns {number} Absolute value
+ */
+const absoluteValue = (value) => {
+    return value < 0 ? -value : value;
 };
 
-function gcd(a, b) {
-    a = abs(a);
-    b = abs(b);
-    while (b !== 0) {
-        let tmp = a % b;
-        a = b;
-        b = tmp;
+/**
+ * Calculates square root using Newton-Raphson method
+ * @param {number} value - Number to find square root of
+ * @returns {number} Square root
+ */
+const squareRoot = (value) => {
+    const epsilon = 0.000001;
+    let prediction = value / 2;
+
+    // Newton-Raphson iteration
+    while (absoluteValue(prediction * prediction - value) > epsilon) {
+        prediction = (prediction + value / prediction) / 2;
     }
+
+    // Check if perfect square
+    const intValue = prediction | 0;
+    if ((intValue + 1) * (intValue + 1) === value) {
+        return intValue + 1;
+    }
+    if (intValue * intValue === value) {
+        return intValue;
+    }
+
+    return prediction;
+};
+
+/**
+ * Calculates greatest common divisor using Euclidean algorithm
+ * @param {number} a - First number
+ * @param {number} b - Second number
+ * @returns {number} GCD
+ */
+function greatestCommonDivisor(a, b) {
+    a = absoluteValue(a);
+    b = absoluteValue(b);
+
+    while (b !== 0) {
+        const temp = a % b;
+        a = b;
+        b = temp;
+    }
+
     return a;
 }
 
-function frac(num, den) {
-    const g = gcd(num, den);
-    num /= g;
-    den /= g;
-    if (den < 0) {
-        num = -num;
-        den = -den;
+/**
+ * Formats a fraction in simplified form
+ * @param {number} numerator - Numerator
+ * @param {number} denominator - Denominator
+ * @returns {string} Formatted fraction
+ */
+function formatFraction(numerator, denominator) {
+    const divisor = greatestCommonDivisor(numerator, denominator);
+    
+    numerator /= divisor;
+    denominator /= divisor;
+
+    // Ensure denominator is positive
+    if (denominator < 0) {
+        numerator = -numerator;
+        denominator = -denominator;
     }
-    return num + "/" + den;
+
+    return `${numerator}/${denominator}`;
 }
 
-module.exports = { mySQRT, frac, gcd };
+module.exports = {
+    absoluteValue,
+    squareRoot,
+    greatestCommonDivisor,
+    formatFraction
+};
