@@ -3,3 +3,6 @@ computorV1
 .log
 .env
 .vscode/
+computor
+package.json
+package-lock.json
